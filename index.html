@@ -40,7 +40,7 @@
     }
 
     function insertData() {
-        if (lastLatitude !== null && lastLongitude !== null) {
+        if (lastLatitude !== null && lastLongitude !== null && lastAlpha !== null){
             rowCount++;
             let row = document.createElement('tr');
             row.innerHTML = `<td>${rowCount}</td><td>${lastLatitude.toFixed(6)}</td><td>${lastLongitude.toFixed(6)}</td><td>${lastAlpha ? lastAlpha.toFixed(2) + '°' : 'Nicht unterstützt'}</td>`;
@@ -86,7 +86,7 @@
         var compassHeading = event.webkitCompassHeading || 360 - event.alpha;
         var windowOrientation = window.orientation || 0;
         var adjustedCompassHeading = adjustCompass(compassHeading, windowOrientation);
-        lastAlpha = adjustedCompassHeading;
+        lastAlpha = compassHeading;
     }
 </script>
 </body>
