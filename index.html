@@ -1,15 +1,13 @@
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoLoc und Kompassausrichtung</title>
+    <title>GeoLoc</title>
 </head>
-
 <body>
 
-<button id="geoLocButton">GeoLoc</button>
+<button onclick="fetchData()">GeoLoc</button>
 
 <table border="1">
     <thead>
@@ -27,32 +25,44 @@
 <script>
     let rowCount = 0;
 
-    document.getElementById('geoLocButton').addEventListener('click', function() {
+    function fetchData() {
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
+            navigator.geolocation.getCurrentPosition(position => {
                 let latitude = position.coords.latitude;
                 let longitude = position.coords.longitude;
                 
-                if (window.DeviceOrientationEvent) {
-                    window.addEventListener('deviceorientation', function(event) {
-                        let alpha = event.alpha; // Absolute Kompassausrichtung
-
-                        // Daten in die Tabelle einfügen
-                        rowCount++;
-                        let row = document.createElement('tr');
-                        row.innerHTML = `<td>${rowCount}</td><td>${latitude.toFixed(6)}</td><td>${longitude.toFixed(6)}</td><td>${alpha.toFixed(2)}°</td>`;
-                        document.getElementById('dataOutput').appendChild(row);
-
-                    }, {once: true}); // EventListener nach einem Mal entfernen
+                // iOS 13+ Erlaubnis für DeviceOrientation
+                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission().then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('deviceorientation', function(event) {
+                                insertData(latitude, longitude, event.alpha);
+                            }, { once: true });
+                        }
+                    }).catch(console.error);
+                } else {
+                    // Für nicht-iOS 13+
+                    if (window.DeviceOrientationEvent) {
+                        window.addEventListener('deviceorientation', function(event) {
+                            insertData(latitude, longitude, event.alpha);
+                        }, { once: true });
+                    } else {
+                        insertData(latitude, longitude, null);
+                    }
                 }
-
             });
         } else {
             alert('Geolocation wird von diesem Browser nicht unterstützt.');
         }
-    });
+    }
+
+    function insertData(latitude, longitude, alpha) {
+        rowCount++;
+        let row = document.createElement('tr');
+        row.innerHTML = `<td>${rowCount}</td><td>${latitude.toFixed(6)}</td><td>${longitude.toFixed(6)}</td><td>${alpha ? alpha.toFixed(2) + '°' : 'Nicht unterstützt'}</td>`;
+        document.getElementById('dataOutput').appendChild(row);
+    }
 </script>
 
 </body>
-
 </html>
