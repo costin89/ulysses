@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenStreetMap mit Pins</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #mapid {
+            height: 500px;
+            width: 100%;
+        }
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+        }
+        th.designation, td.designation {
+            width: 300px;
+        }
+        
+        .designation-input {
+            width: 300px;
+        }
+        #table-container {
+            max-height: 550px;  /* 5 Zeilen * 40px + 10px für den Header */
+            overflow-y: auto;  /* Scrollbalken wird angezeigt, wenn der Inhalt die maximale Höhe übersteigt */
+        }
+        
+        .float-container {
+            border: 3px solid #fff;
+            padding: 20px;
+            display: flex;
+        }
+        
+        .float-child1 {
+            width: 35%;
+            float: left;
+            padding: 20px;
+            border: 1px solid black;
+        } 
+        
+        .float-child2 {
+            width: 65%;
+            float: left;
+            padding: 20px;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+<div class="float-container">
+    
+    <div class="float-child1">
+        
+        <div id="mapid"></div>
+        <br>
+        <button onclick="addPin()">+ Pin</button>
+        <button onclick="removePin()">- Pin</button>
+        <button onclick="exportToCSV()">Export</button>
+        
+    </div>
+    
+    <div class="float-child2">
+        
+        <div id="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th> <!-- Zählerspalte -->
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                        <th>Building Number</th>
+                        <th>Designation</th>
+                        <th>Tags</th>
+                    </tr>
+                </thead>
+                <tbody id="coords-table">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+    var map = L.map('mapid').setView([49.876114, 8.657519], 18);
+    var counter = 0; // Globale Variable für den Zeilenzähler
+    var markersArray = [];  // Globales Array zum Speichern der Marker
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    function addPin() {
+        // Vorherige einmalige "click"-Event-Handler entfernen
+        map.off('click');
+        
+        map.once('click', function(e) {
+            var marker = L.marker(e.latlng).addTo(map);
+            markersArray.push(marker);  // Marker zum Array hinzufügen
+
+            // Koordinaten zur Tabelle hinzufügen
+            var table = document.getElementById('coords-table');
+            var row = table.insertRow();
+            
+            var cell0 = row.insertCell(0); // Zählerspalte
+            var cell1 = row.insertCell(1);
+            var cell2 = row.insertCell(2);
+            var cell3 = row.insertCell(3);
+            var cell4 = row.insertCell(4);
+            var cell5 = row.insertCell(5);
+            
+            counter++; // Zähler inkrementieren
+            cell0.innerHTML = counter; // Aktuellen Wert des Zählers in die Zählerspalte eintragen
+            
+            // Setze die CSS-Klasse für die "Designation"-Zelle
+            cell4.className = 'designation';
+            
+            // Setze die Koordinatenwerte für die ersten beiden Zellen
+            cell1.innerHTML = e.latlng.lat;
+            cell2.innerHTML = e.latlng.lng;
+
+            // Füge ein Eingabefeld in die dritte Zelle ein
+            var inputField = document.createElement('input');
+            inputField.type = 'text';
+            cell3.appendChild(inputField);
+            
+            // Füge ein Eingabefeld in die vierte Zelle ein
+            var inputField = document.createElement('input');
+            inputField.type = 'text';
+            inputField.className = 'designation-input'; // Setze die CSS-Klasse für das Eingabefeld
+            cell4.appendChild(inputField);
+            
+            // Füge ein Eingabefeld in die fünfte Zelle ein
+            var inputField = document.createElement('input');
+            inputField.type = 'text';
+            cell5.appendChild(inputField);
+        });
+    }
+    
+    function removePin() {
+        var lineNumber = prompt("Bitte geben Sie die Zeilennummer (Nr.) ein, die gelöscht werden soll:");
+        
+        if (lineNumber) {
+            var table = document.getElementById('coords-table');
+            if (lineNumber > 0 && lineNumber <= table.rows.length) {
+                // Entfernen des Markers von der Karte
+                var markerToRemove = markersArray[lineNumber - 1];
+                map.removeLayer(markerToRemove);
+                markersArray.splice(lineNumber - 1, 1);  // Entfernen des Markers aus dem Array
+                
+                // Entfernen der Zeile aus der Tabelle
+                table.deleteRow(lineNumber - 1);
+                
+                // Aktualisieren der Zeilenzählung
+                for (var i = 0; i < table.rows.length; i++) {
+                    table.rows[i].cells[0].innerText = i + 1;
+                }
+            } else {
+                alert("Ungültige Zeilennummer!");
+            }
+        }
+    }
+    
+    function exportToCSV() {
+        var table = document.getElementById('coords-table');
+        var rows = table.getElementsByTagName('tr');
+        var csv = [];
+        
+        for (var i = 0; i < rows.length; i++) {
+            var row = [], cols = rows[i].getElementsByTagName('td');
+            
+            for (var j = 0; j < cols.length; j++) {
+                var data = cols[j].innerText || cols[j].querySelector('input').value;
+                data = '"' + data.replace(/"/g, '""') + '"';
+                row.push(data);
+            }
+            
+            csv.push(row.join(','));
+        }
+        
+        var csvString = csv.join('\r\n');
+        var blob = new Blob([csvString], { type: 'text/csv' });
+        var url = window.URL.createObjectURL(blob);
+        
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'data.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+</script>
+</body>
+</html>
