@@ -1,18 +1,16 @@
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GeoLoc</title>
 </head>
-
 <body>
+<br><br>
 <center>
 <button onclick="fetchData()">GeoLoc</button>
-<button onclick="insertData()">+ In Tabelle einfügen</button>
-
-<table border="1">
+<br><br>
+<table>
     <thead>
         <tr>
             <th>#</th>
@@ -24,6 +22,8 @@
     <tbody id="dataOutput">
     </tbody>
 </table>
+<br><br>
+<button onclick="insertData()">+ In Tabelle einfügen</button>
 </center>
 <script>
     let rowCount = 0;
@@ -36,30 +36,34 @@
             navigator.geolocation.getCurrentPosition(position => {
                 lastLatitude = position.coords.latitude;
                 lastLongitude = position.coords.longitude;
-                
-                // iOS 13+ Erlaubnis für DeviceOrientation
+
                 if (typeof DeviceOrientationEvent.requestPermission === 'function') {
                     DeviceOrientationEvent.requestPermission().then(permissionState => {
                         if (permissionState === 'granted') {
-                            window.addEventListener('deviceorientation', function(event) {
-                                lastAlpha = event.alpha;
-                            }, { once: true });
+                            attachOrientationListener();
                         }
                     }).catch(console.error);
                 } else {
-                    // Für nicht-iOS 13+
-                    if (window.DeviceOrientationEvent) {
-                        window.addEventListener('deviceorientation', function(event) {
-                            lastAlpha = event.alpha;
-                        }, { once: true });
-                    } else {
-                        lastAlpha = null;
-                    }
+                    attachOrientationListener();
                 }
             });
         } else {
             alert('Geolocation wird von diesem Browser nicht unterstützt.');
         }
+    }
+
+    function attachOrientationListener() {
+        window.addEventListener('deviceorientation', function(event) {
+            if (event.absolute) {
+                let alpha = event.alpha;
+                if (typeof event.webkitCompassHeading !== "undefined") {
+                    alpha = event.webkitCompassHeading; // für Safari
+                }
+                lastAlpha = alpha;
+            } else {
+                alert("Absoluter Kompasswert nicht verfügbar.");
+            }
+        }, { once: true });
     }
 
     function insertData() {
@@ -73,7 +77,5 @@
         }
     }
 </script>
-
 </body>
-
 </html>
