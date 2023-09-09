@@ -6,17 +6,17 @@
     <title>GeoLoc</title>
 </head>
 <body>
-<br><br>
 <center>
-<button onclick="fetchData()">GeoLoc</button>
+<button onclick="fetchGeoLocation()">GeoLoc</button>
+<button onclick="requestOrientationPermission()">Erlaubnis für Ausrichtung</button>
 <br><br>
-<table>
+<table border="1">
     <thead>
         <tr>
             <th>#</th>
             <th>Breitengrad</th>
             <th>Längengrad</th>
-            <th>Kompass</th>
+            <th>Kompassausrichtung</th>
         </tr>
     </thead>
     <tbody id="dataOutput">
@@ -31,24 +31,36 @@
     let lastLongitude = null;
     let lastAlpha = null;
 
-    function fetchData() {
+    function fetchGeoLocation() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(position => {
                 lastLatitude = position.coords.latitude;
                 lastLongitude = position.coords.longitude;
-
-                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    DeviceOrientationEvent.requestPermission().then(permissionState => {
-                        if (permissionState === 'granted') {
-                            attachOrientationListener();
-                        }
-                    }).catch(console.error);
-                } else {
-                    attachOrientationListener();
-                }
             });
         } else {
             alert('Geolocation wird von diesem Browser nicht unterstützt.');
+        }
+    }
+
+    function requestOrientationPermission() {
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            DeviceOrientationEvent.requestPermission().then(permissionState => {
+                if (permissionState === 'granted') {
+                    window.addEventListener('deviceorientation', function(event) {
+                        if (event.absolute) {
+                            let alpha = event.alpha;
+                            if (typeof event.webkitCompassHeading !== "undefined") {
+                                alpha = event.webkitCompassHeading; // für Safari
+                            }
+                            lastAlpha = alpha;
+                        } else {
+                            alert("Absoluter Kompasswert nicht verfügbar.");
+                        }
+                    }, { once: true });
+                }
+            }).catch(console.error);
+        } else {
+            attachOrientationListener();
         }
     }
 
@@ -56,9 +68,6 @@
         window.addEventListener('deviceorientation', function(event) {
             if (event.absolute) {
                 let alpha = event.alpha;
-                if (typeof event.webkitCompassHeading !== "undefined") {
-                    alpha = event.webkitCompassHeading; // für Safari
-                }
                 lastAlpha = alpha;
             } else {
                 alert("Absoluter Kompasswert nicht verfügbar.");
