@@ -39,11 +39,14 @@
                 lastLatitude = position.coords.latitude;
                 lastLongitude = position.coords.longitude;
                 requestPermission(); // Aufruf der Permission Funktion für die DeviceOrientation
+            }, error => {
+                alert('Fehler beim Abrufen der Geolokalisierungsdaten: ' + error.message);
             });
         } else {
             alert('Geolocation wird von diesem Browser nicht unterstützt.');
         }
     }
+
 
     function insertData() {
         if (lastLatitude !== null && lastLongitude !== null && lastAlpha !== null) {
