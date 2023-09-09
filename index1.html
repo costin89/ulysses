@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoLoc und Kompassausrichtung</title>
+</head>
+
+<body>
+
+<button id="geoLocButton">GeoLoc</button>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Breitengrad</th>
+            <th>Längengrad</th>
+            <th>Absolute Kompassausrichtung</th>
+        </tr>
+    </thead>
+    <tbody id="dataOutput">
+    </tbody>
+</table>
+
+<script>
+    let rowCount = 0;
+
+    document.getElementById('geoLocButton').addEventListener('click', function() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                let latitude = position.coords.latitude;
+                let longitude = position.coords.longitude;
+                
+                if (window.DeviceOrientationEvent) {
+                    window.addEventListener('deviceorientation', function(event) {
+                        let alpha = event.alpha; // Absolute Kompassausrichtung
+
+                        // Daten in die Tabelle einfügen
+                        rowCount++;
+                        let row = document.createElement('tr');
+                        row.innerHTML = `<td>${rowCount}</td><td>${latitude.toFixed(6)}</td><td>${longitude.toFixed(6)}</td><td>${alpha.toFixed(2)}°</td>`;
+                        document.getElementById('dataOutput').appendChild(row);
+
+                    }, {once: true}); // EventListener nach einem Mal entfernen
+                }
+
+            });
+        } else {
+            alert('Geolocation wird von diesem Browser nicht unterstützt.');
+        }
+    });
+</script>
+
+</body>
+
+</html>
