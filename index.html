@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GeoLoc</title>
 </head>
+
 <body>
 <center>
-<button onclick="fetchGeoLocation()">GeoLoc</button>
-<button onclick="requestOrientationPermission()">Erlaubnis für Ausrichtung</button>
+<br><br>
+<button onclick="fetchData()">GeoLoc</button>
 <br><br>
 <table border="1">
     <thead>
@@ -16,7 +18,7 @@
             <th>#</th>
             <th>Breitengrad</th>
             <th>Längengrad</th>
-            <th>Kompassausrichtung</th>
+            <th>Absolute Kompassausrichtung</th>
         </tr>
     </thead>
     <tbody id="dataOutput">
@@ -31,52 +33,20 @@
     let lastLongitude = null;
     let lastAlpha = null;
 
-    function fetchGeoLocation() {
+    async function fetchData() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(position => {
                 lastLatitude = position.coords.latitude;
                 lastLongitude = position.coords.longitude;
+                requestPermission(); // Aufruf der Permission Funktion für die DeviceOrientation
             });
         } else {
             alert('Geolocation wird von diesem Browser nicht unterstützt.');
         }
     }
 
-    function requestOrientationPermission() {
-        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-            DeviceOrientationEvent.requestPermission().then(permissionState => {
-                if (permissionState === 'granted') {
-                    window.addEventListener('deviceorientation', function(event) {
-                        if (event.absolute) {
-                            let alpha = event.alpha;
-                            if (typeof event.webkitCompassHeading !== "undefined") {
-                                alpha = event.webkitCompassHeading; // für Safari
-                            }
-                            lastAlpha = alpha;
-                        } else {
-                            alert("Absoluter Kompasswert nicht verfügbar.");
-                        }
-                    }, { once: true });
-                }
-            }).catch(console.error);
-        } else {
-            attachOrientationListener();
-        }
-    }
-
-    function attachOrientationListener() {
-        window.addEventListener('deviceorientation', function(event) {
-            if (event.absolute) {
-                let alpha = event.alpha;
-                lastAlpha = alpha;
-            } else {
-                alert("Absoluter Kompasswert nicht verfügbar.");
-            }
-        }, { once: true });
-    }
-
     function insertData() {
-        if (lastLatitude !== null && lastLongitude !== null) {
+        if (lastLatitude !== null && lastLongitude !== null && lastAlpha !== null) {
             rowCount++;
             let row = document.createElement('tr');
             row.innerHTML = `<td>${rowCount}</td><td>${lastLatitude.toFixed(6)}</td><td>${lastLongitude.toFixed(6)}</td><td>${lastAlpha ? lastAlpha.toFixed(2) + '°' : 'Nicht unterstützt'}</td>`;
@@ -85,6 +55,47 @@
             alert('Bitte zuerst GeoLoc Daten abrufen.');
         }
     }
+
+    function adjustCompass(compassHeading, windowOrientation) {
+      var adjustedCompassHeading = compassHeading;
+      if (windowOrientation === 90) {
+        adjustedCompassHeading = (compassHeading - 270 + 360) % 360;
+      } else if (windowOrientation === -90) {
+        adjustedCompassHeading = (compassHeading + 270) % 360;
+      }
+      return adjustedCompassHeading;
+    }
+
+    async function requestPermission() {
+      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const permission = await DeviceOrientationEvent.requestPermission();
+        if (permission === 'granted') {
+          init();
+        } else {
+          alert('Berechtigung nicht erteilt');
+        }
+      } else {
+        alert("Diese Anwendung muss auf den Kompass Ihres Geräts zugreifen. Bitte erlauben Sie den Zugriff, wenn Sie dazu aufgefordert werden.");
+        init();
+      }
+    }
+
+    function init() {
+      if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', handleOrientation, true);
+      } else {
+        document.getElementById("status").innerHTML = "Ihr Browser unterstützt keine Device Orientation Events.";
+      }
+    }
+
+    function handleOrientation(event) {
+      var compassHeading = event.webkitCompassHeading || 360 - event.alpha;
+      var windowOrientation = window.orientation || 0;
+      lastAlpha = adjustCompass(compassHeading, windowOrientation);
+    }
+
 </script>
+
 </body>
+
 </html>
