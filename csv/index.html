@@ -14,15 +14,21 @@
 <body>
 
 <!-- HTML Elemente -->
-<input type="text" id="searchText" placeholder="Hashtag suchen (z.B. Beispiel)">
+<input type="text" id="searchText" placeholder="Hashtag suchen (z.B. #Beispiel)">
 <button onclick="searchCsv()">Suchen</button>
 <div id="searchResults"></div>
 
 <!-- JavaScript Funktion -->
 <script>
     async function searchCsv() {
-        const searchText = "#" + document.getElementById('searchText').value; // Das # wird hier automatisch hinzugefügt
+        const searchText = document.getElementById('searchText').value;
         const searchResultsDiv = document.getElementById('searchResults');
+
+        // Überprüfen, ob das Suchwort mit einem # beginnt
+        if (!searchText.startsWith("#")) {
+            searchResultsDiv.innerHTML = 'Bitte mit einem # beginnen.';
+            return;
+        }
 
         try {
             const response = await fetch('data.csv');
@@ -35,10 +41,10 @@
             
             for (let i = 0; i < rows.length; i++) {
                 const columns = rows[i].split(',');  // Spalten in der CSV-Datei
-                const hashtagColumn = columns[2];  // Die "Hashtag"-Spalte ist die 3. Spalte, also Index 2
+                const hashtagColumn = columns[4];  // Die "Hashtag"-Spalte ist die 3. Spalte, also Index 2
 
                 if (hashtagColumn && hashtagColumn.includes(searchText)) {
-                    matchingRows.push(columns[0].replace(/"/g, ''));  // Nur den Wert der ersten Spalte hinzufügen und doppelte Anführungszeichen entfernen
+                    matchingRows.push(columns[0]);  // Nur den Wert der ersten Spalte hinzufügen
                 }
             }
 
