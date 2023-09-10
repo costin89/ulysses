@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Datei Durchsuchen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- HTML Elemente -->
+<input type="text" id="searchText" placeholder="Text suchen">
+<button onclick="searchCsv()">Suchen</button>
+<div id="searchResults"></div>
+
+<!-- JavaScript Funktion -->
+<script>
+    async function searchCsv() {
+        const searchText = document.getElementById('searchText').value;
+        const searchResultsDiv = document.getElementById('searchResults');
+        
+        try {
+            // Laden der .csv Datei, die sich im selben Ordner wie die index.html befindet
+            const response = await fetch('data.csv'); // Angenommen, die CSV-Datei heißt "data.csv"
+            if (!response.ok) throw new Error('Failed to load the CSV file.');
+
+            const csvData = await response.text();
+            const rows = csvData.split('\n');
+            
+            let matchingRows = [];
+            
+            for (let i = 0; i < rows.length; i++) {
+                if (rows[i].includes(searchText)) {
+                    matchingRows.push(rows[i]);
+                }
+            }
+
+            // Ergebnisse anzeigen
+            if (matchingRows.length > 0) {
+                searchResultsDiv.innerHTML = matchingRows.join('<br>');
+            } else {
+                searchResultsDiv.innerHTML = 'Keine Übereinstimmungen gefunden.';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Ein Fehler ist aufgetreten beim Laden der .csv-Datei.');
+        }
+    }
+</script>
+
+</body>
+</html>
