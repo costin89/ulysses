@@ -6,12 +6,22 @@
 	<body>
 		<center>
 			<button onclick="twoFuncs()">Standort abrufen</button>
+			<button onclick="addGeoTagToTable()">GeoTag</button>
 			<br><br><br>
 			<p id="demo"></p>
 			<p id="status"></p>
+			<table id="geotagTable">
+				<tr>
+					<th>#</th>
+					<th>Latitude</th>
+					<th>Longitude</th>
+					<th>Kompass</th>
+				</tr>
+			</table>
 		</center>
 		<script>
-			var lat1, lon1;
+			var lat1, lon1, compassValue;
+			var rowCount = 0;
 			
 			async function twoFuncs() {
 				getLocation();
@@ -78,7 +88,26 @@
 				var adjustedCompassHeading = adjustCompass(compassHeading, windowOrientation);
 				var absoluteAngle = event.alpha;
 				
-				document.getElementById("status").innerHTML = "Kompassrichtung: " + adjustedCompassHeading.toFixed(2) + " Grad";
+				compassValue = adjustedCompassHeading.toFixed(2);
+				document.getElementById("status").innerHTML = "Kompassrichtung: " + compassValue + " Grad";
+			}
+			
+			function addGeoTagToTable() {
+				var table = document.getElementById("geotagTable");
+				var row = table.insertRow(-1);  // add new row at the end
+				
+				rowCount += 1;  // increase the row count
+				
+				// insert cells for the row number, latitude, longitude, and compass value
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+				
+				cell1.innerHTML = rowCount;
+				cell2.innerHTML = lat1;
+				cell3.innerHTML = lon1;
+				cell4.innerHTML = compassValue;
 			}
 	</script>
 </body>
