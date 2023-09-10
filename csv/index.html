@@ -35,7 +35,7 @@
             
             for (let i = 0; i < rows.length; i++) {
                 const columns = rows[i].split(',');  // Spalten in der CSV-Datei
-                const hashtagColumn = columns[4];  // Die "Hashtag"-Spalte ist die 3. Spalte, also Index 2
+                const hashtagColumn = columns.length > 4 ? columns[4] : null;  // Die "Hashtag"-Spalte ist die 3. Spalte, also Index 2
 
                 if (hashtagColumn && hashtagColumn.trim() === searchText.trim()) {
                     matchingRows.push(columns[0].replace(/"/g, ''));  // Nur den Wert der ersten Spalte hinzufügen und doppelte Anführungszeichen entfernen
