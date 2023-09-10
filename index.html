@@ -22,7 +22,6 @@
 	<body>
 		<center>
 			<button onclick="twoFuncs()">Standort abrufen</button>
-			<button onclick="addGeoTagToTable()">GeoTag</button>
 			<br><br><br>
 			<p id="demo"></p>
 			<p id="status"></p>
@@ -34,6 +33,8 @@
 					<th>Kompass</th>
 				</tr>
 			</table>
+			<button onclick="addGeoTagToTable()">GeoTag</button>
+			<button onclick="deleteRow()">Zeile löschen</button>
 		</center>
 		<script>
 			var lat1, lon1, compassValue;
@@ -125,6 +126,25 @@
 				cell3.innerHTML = lon1;
 				cell4.innerHTML = compassValue;
 			}
+			function deleteRow() {
+			        var rowIndex = prompt("Welche Zeile möchten Sie löschen? (Geben Sie die Zeilennummer ein)");
+			
+			        if (rowIndex) {
+			            rowIndex = parseInt(rowIndex, 10);
+			
+			            if (!isNaN(rowIndex) && rowIndex > 0 && rowIndex <= rowCount) {
+			                var table = document.getElementById("geotagTable");
+			                table.deleteRow(rowIndex);
+			
+			                rowCount--;
+			                for (let i = rowIndex; i <= rowCount; i++) {
+			                    table.rows[i].cells[0].innerText = i;
+			                }
+			            } else {
+			                alert("Ungültige Zeilennummer.");
+			            }
+			        }
+			    }
 	</script>
 </body>
 </html>
