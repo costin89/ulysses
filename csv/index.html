@@ -14,19 +14,24 @@
 <body>
 
 <!-- HTML Elemente -->
-<input type="text" id="searchText" placeholder="Stichwort suchen (ohne #)">
+<input type="text" id="searchText" placeholder="Hashtag suchen (z.B. #Beispiel)">
 <button onclick="searchCsv()">Suchen</button>
 <div id="searchResults"></div>
 
 <!-- JavaScript Funktion -->
 <script>
     async function searchCsv() {
-        const searchText = "#" + document.getElementById('searchText').value; // Fügt ein '#' vor dem Suchtext hinzu
+        const searchText = document.getElementById('searchText').value;
         const searchResultsDiv = document.getElementById('searchResults');
-        
+
+        // Überprüfen, ob das Suchwort mit einem # beginnt
+        if (!searchText.startsWith("#")) {
+            searchResultsDiv.innerHTML = 'Bitte mit einem # beginnen.';
+            return;
+        }
+
         try {
-            // Laden der .csv Datei, die sich im selben Ordner wie die index.html befindet
-            const response = await fetch('data.csv'); // Angenommen, die CSV-Datei heißt "data.csv"
+            const response = await fetch('data.csv');
             if (!response.ok) throw new Error('Failed to load the CSV file.');
 
             const csvData = await response.text();
@@ -35,7 +40,10 @@
             let matchingRows = [];
             
             for (let i = 0; i < rows.length; i++) {
-                if (rows[i].includes(searchText)) {
+                const columns = rows[i].split(',');  // Spalten in der CSV-Datei
+                const hashtagColumn = columns[2];  // Die "Hashtag"-Spalte ist die 3. Spalte, also Index 2
+
+                if (hashtagColumn && hashtagColumn.includes(searchText)) {
                     matchingRows.push(rows[i]);
                 }
             }
