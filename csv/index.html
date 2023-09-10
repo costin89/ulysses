@@ -41,7 +41,7 @@
             
             for (let i = 0; i < rows.length; i++) {
                 const columns = rows[i].split(',');  // Spalten in der CSV-Datei
-                const hashtagColumn = columns[2];  // Die "Hashtag"-Spalte ist die 3. Spalte, also Index 2
+                const hashtagColumn = columns[4];  // Die "Hashtag"-Spalte ist die 3. Spalte, also Index 2
 
                 if (hashtagColumn && hashtagColumn.includes(searchText)) {
                     matchingRows.push(rows[i]);
