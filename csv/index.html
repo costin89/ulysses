@@ -14,14 +14,14 @@
 <body>
 
 <!-- HTML Elemente -->
-<input type="text" id="searchText" placeholder="Text suchen">
+<input type="text" id="searchText" placeholder="Stichwort suchen (ohne #)">
 <button onclick="searchCsv()">Suchen</button>
 <div id="searchResults"></div>
 
 <!-- JavaScript Funktion -->
 <script>
     async function searchCsv() {
-        const searchText = document.getElementById('searchText').value;
+        const searchText = "#" + document.getElementById('searchText').value; // Fügt ein '#' vor dem Suchtext hinzu
         const searchResultsDiv = document.getElementById('searchResults');
         
         try {
