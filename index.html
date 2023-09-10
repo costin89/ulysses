@@ -1,93 +1,85 @@
 <!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoLoc</title>
-</head>
-<body>
-<button onclick="fetchData()">GeoLoc</button>
-<button onclick="insertData()">+ In Tabelle einfügen</button>
-<table>
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Breitengrad</th>
-            <th>Längengrad</th>
-            <th>Absolute Kompassausrichtung</th>
-        </tr>
-    </thead>
-    <tbody id="dataOutput">
-    </tbody>
-</table>
-
-<script>
-    let rowCount = 0;
-    let lastLatitude = null;
-    let lastLongitude = null;
-    let lastAlpha = null;
-
-    function fetchData() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(position => {
-                lastLatitude = position.coords.latitude;
-                lastLongitude = position.coords.longitude;
-                requestPermission();
-            });
-        } else {
-            alert('Geolocation wird von diesem Browser nicht unterstützt.');
-        }
-    }
-
-    function insertData() {
-        if (lastLatitude !== null && lastLongitude !== null && lastAlpha !== null){
-            rowCount++;
-            let row = document.createElement('tr');
-            row.innerHTML = `<td>${rowCount}</td><td>${lastLatitude.toFixed(6)}</td><td>${lastLongitude.toFixed(6)}</td><td>${lastAlpha ? lastAlpha.toFixed(2) + '°' : 'Nicht unterstützt'}</td>`;
-            document.getElementById('dataOutput').appendChild(row);
-        } else {
-            alert('Bitte zuerst GeoLoc Daten abrufen.');
-        }
-    }
-
-    function adjustCompass(compassHeading, windowOrientation) {
-        var adjustedCompassHeading = compassHeading;
-        if (windowOrientation === 90) {
-            adjustedCompassHeading = (compassHeading - 270 + 360) % 360;
-        } else if (windowOrientation === -90) {
-            adjustedCompassHeading = (compassHeading + 270) % 360;
-        }
-        return adjustedCompassHeading;
-    }
-
-    async function requestPermission() {
-        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-            const permission = await DeviceOrientationEvent.requestPermission();
-            if (permission === 'granted') {
-                init();
-            } else {
-                alert('Berechtigung nicht erteilt');
-            }
-        } else {
-            alert("Diese Anwendung muss auf den Kompass Ihres Geräts zugreifen. Bitte erlauben Sie den Zugriff, wenn Sie dazu aufgefordert werden.");
-            init();
-        }
-    }
-
-    function init() {
-        if (window.DeviceOrientationEvent) {
-            window.addEventListener('deviceorientation', handleOrientation, true);
-        } else {
-            document.getElementById("status").innerHTML = "Ihr Browser unterstützt keine Device Orientation Events.";
-        }
-    }
-
-    function handleOrientation(event) {
-        var compassHeading = event.webkitCompassHeading || 360 - event.alpha;
-        var windowOrientation = window.orientation || 0;
-        var adjustedCompassHeading = adjustCompass(compassHeading, windowOrientation);
-        lastAlpha = compassHeading;
-    }
-</script>
+<html>
+	<head>
+		<meta charset="UTF-8">
+	</head>
+	<body>
+		<center>
+			<button onclick="twoFuncs()">Standort abrufen</button>
+			<br><br><br>
+			<p id="demo"></p>
+			<p id="status"></p>
+		</center>
+		<script>
+			var lat1, lon1;
+			
+			async function twoFuncs() {
+				getLocation();
+				await requestPermission();
+			}
+			
+			function getLocation() {
+				if (navigator.geolocation) {
+					navigator.geolocation.getCurrentPosition(showPosition);
+				} else {
+					document.getElementById("demo").innerHTML = "Geolocation wird von diesem Browser nicht unterstützt.";
+				}
+			}
+			
+			function showPosition(position) {
+				lat1 = position.coords.latitude;
+				lon1 = position.coords.longitude;
+				document.getElementById("demo").innerHTML = "Breitengrad: " + lat1 + "<br>Längengrad: " + lon1;
+			}
+			
+			// Hilfsfunktion zur Anpassung der Kompassrichtung basierend auf der Fensterausrichtung
+			function adjustCompass(compassHeading, windowOrientation) {
+				var adjustedCompassHeading = compassHeading;
+				
+				if (windowOrientation === 90) {
+					// Gerät ist im Landschaftsmodus und gedreht
+					adjustedCompassHeading = (compassHeading - 270 + 360) % 360;
+				} else if (windowOrientation === -90) {
+					// Gerät ist im Landschaftsmodus und entgegengesetzt gedreht
+					adjustedCompassHeading = (compassHeading + 270) % 360;
+				}
+				// Bei windowOrientation === 0 oder 180 muss nichts angepasst werden
+				return adjustedCompassHeading;
+			}
+			
+			async function requestPermission() {
+				if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+					// iOS 13+
+					const permission = await DeviceOrientationEvent.requestPermission();
+					if (permission === 'granted') {
+						init();
+					} else {
+						alert('Berechtigung nicht erteilt');
+					}
+				} else {
+					// Für ältere Versionen oder Browser, die DeviceOrientationEvent nicht unterstützen
+					alert("Diese Anwendung muss auf den Kompass Ihres Geräts zugreifen. Bitte erlauben Sie den Zugriff, wenn Sie dazu aufgefordert werden.");
+					init();
+				}
+			}
+			
+			function init() {
+				if (window.DeviceOrientationEvent) {
+					// Hinzufügen eines EventListeners für das deviceorientation Event
+					window.addEventListener('deviceorientation', handleOrientation, true);
+				} else {
+					document.getElementById("status").innerHTML = "Ihr Browser unterstützt keine Device Orientation Events.";
+				}
+			}
+			
+			function handleOrientation(event) {
+				var compassHeading = event.webkitCompassHeading || 360 - event.alpha;
+				var windowOrientation = window.orientation || 0;
+				var adjustedCompassHeading = adjustCompass(compassHeading, windowOrientation);
+				var absoluteAngle = event.alpha;
+				
+				document.getElementById("status").innerHTML = "Kompassrichtung: " + adjustedCompassHeading.toFixed(2) + " Grad";
+			}
+	</script>
 </body>
 </html>
