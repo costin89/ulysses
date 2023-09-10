@@ -21,7 +21,7 @@
 <!-- JavaScript Funktion -->
 <script>
     async function searchCsv() {
-        const searchText = "#" + document.getElementById('searchText').value.trim(); // Das # wird hier automatisch hinzugefügt
+        const searchText = "#" + document.getElementById('searchText').value; // Das # wird hier automatisch hinzugefügt
         const searchResultsDiv = document.getElementById('searchResults');
 
         try {
@@ -35,9 +35,9 @@
             
             for (let i = 0; i < rows.length; i++) {
                 const columns = rows[i].split(',');  // Spalten in der CSV-Datei
-                const hashtagColumn = columns[4].trim();  // Die "Hashtag"-Spalte ist die 3. Spalte, also Index 2
+                const hashtagColumn = columns[4];  // Die "Hashtag"-Spalte ist die 3. Spalte, also Index 2
 
-                if (hashtagColumn && hashtagColumn === searchText) {
+                if (hashtagColumn && hashtagColumn.trim() === searchText.trim()) {
                     matchingRows.push(columns[0].replace(/"/g, ''));  // Nur den Wert der ersten Spalte hinzufügen und doppelte Anführungszeichen entfernen
                 }
             }
